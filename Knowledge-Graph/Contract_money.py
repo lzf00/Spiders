@@ -10,20 +10,22 @@ from stanfordcorenlp import StanfordCoreNLP
 import json
 nlp = StanfordCoreNLP(r'D:\Anaconda3\stanford-corenlp-4.3.1')
 #分词（word_tokenize）、词性标注（pos_tag）、命名实体识别（ner）、句法依存分析（dependency_parse）、句法解析（parse）
-file_path='D:\All_Script\Python_deagel\hetong/hetong1.csv'
-f = open ( file_path, 'a+', encoding='utf-8', newline='' )
-writer = csv.writer ( f )
-writer.writerow ( ['key',"Money"] )
+# file_path='D:\All_Script\Python_deagel\hetong/hetong1.csv'
+# f = open ( file_path, 'a+', encoding='utf-8', newline='' )
+# writer = csv.writer ( f )
+# writer.writerow ( ['key',"Money"] )
 
-filepath1=r'D:\All_Script\Python_deagel\hetong\contract0.csv'
-filepath2='D:\Program Files (x86)/neo4j-community-3.5.28-2\import/activity.csv'
+filepath1=r'D:\All_Script\Python_deagel\hetong\hetong1.csv'
+#filepath2='D:\Program Files (x86)/neo4j-community-3.5.28-2\import/activity.csv'
 
 d1 = pd.read_csv ( filepath1, usecols=['content'] )
 print(d1[0:])
 #d = pd.read_csv ( 'news.csv', usecols=['content'] )
 
-key=0
+key=2
+Ms=[]
 for x in d1['content'][0:]:  #424对应CSV426
+    print ( 'Named Entities:', nlp.ner ( x ) )
     try:
         #print ('Tokenize:', nlp.word_tokenize(x))
         #print ('Part of Speech:', nlp.pos_tag(x))
@@ -41,61 +43,43 @@ for x in d1['content'][0:]:  #424对应CSV426
                 all_numc.append(numc)
             numc=numc+1
 
-        locnum=[]
-        LOC=[]
-        COUN=[]
-        TIME1=[]
+        money=[]
         for xx in nlp.ner(x):
-            if 'LOCATION' in xx :
-                NER0=str(xx).split("'",4)[1]
-                print("LOCATION:::",num,":  ",NER0)
-                #if NER0 not in LOC:
-                LOC.append(NER0)
-                if str(nlp.ner(x)[num+1]).split("'",4)[3]=="O":
-                    print("O")
-                    LOC.append ( ";" )
-                locnum.append(num)
-
-            if 'COUNTRY' in xx :
-                NER1=str(xx).split("'",4)[1]
-                print("COUNTRY:::",num,":  ",NER1)
-                #if NER1 not in COUN:
-                COUN.append ( NER1 )
-                LOC.append ( NER1 )
-                if str(nlp.ner(x)[num+1]).split("'",4)[3]=="O":
-                    print("O")
-                    COUN.append ( ";" )
-                    LOC.append  (";" )
-
-            if 'DATE' in xx :
-                NER2=str(xx).split("'",4)[1]
-                print("DATE:::",num,":  ",NER2)
-                #if NER2 not in TIME1 :
-                TIME1.append ( NER2 )
-                if str(nlp.ner(x)[num+1]).split("'",4)[3]=="O":
-                    print("O")
-                    TIME1.append ( ";" )
 
             if 'MONEY' in xx :
                 NER3=str(xx).split("'",4)[1]
                 print("DATE:::",num,":  ",NER3)
                 #if NER2 not in TIME1 :
-                TIME1.append ( NER3 )
+                money.append ( NER3 )
                 if str(nlp.ner(x)[num+1]).split("'",4)[3]=="O":
                     print("O")
-                    TIME1.append ( ";" )
-
+                    money.append ( ";" )
+            else:
+                LOC1='[]'
             num=num+1
-        LOC1 = ' '.join ( LOC ).strip ()
-        COUN1 = ' '.join ( COUN ).strip ()
-        TIME11 = ' '.join ( TIME1 ).strip ()
-        writer.writerow ( [key, LOC1, COUN1,TIME11] )
+        LOC1 = ' '.join ( money ).strip ()
+        Ms.append(LOC1)
+
+        #writer.writerow ( [key, LOC1, COUN1,TIME11] )
     except:
-        writer.writerow ( [key, "[]", "[]","[]"] )
+        #writer.writerow ( [key, "[]", "[]","[]"] )
+        LOC1="[]"
+        Ms.append(LOC1)
         print("wu")
     print ( key,"------------------------------------------------------------------------" )
     key = key + 1
-#for xx1 in nlp.ner(x):
+
+data = pd.read_csv ( filepath1 )  # pandas读文件某一列
+# print ( data )
+print ( data.columns )  # 获取列索引值
+data1 = Ms  # 获取列名为flow的数据作为新列的数据
+#context.append ( "xxx ")
+print(len(Ms))
+print("money:::",Ms)
+data['picture'] = data1  # 将新列的名字设置为cha
+data.to_csv ( filepath1, mode='w', index=False ,encoding='utf-8')
+# mode=a，以追加模式写入,header表示列名，默认为true,index表示行名，默认为true，再次写入不需要行名
+print ( data )
 
 nlp.close()  # Do not forget to close! The backend server will consume a lot memery.
 
